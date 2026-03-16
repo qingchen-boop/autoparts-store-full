@@ -8,10 +8,10 @@ services:
     environment:
       POSTGRES_DB: autoparts
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: autoparts123
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-autoparts2024}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ../database/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/schema.sql
     ports:
       - "5432:5432"
     healthcheck:
@@ -19,6 +19,23 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - autoparts-network
+
+  # Redis (Cache & Sessions)
+  redis:
+    image: redis:7-alpine
+    container_name: autoparts-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
     networks:
       - autoparts-network
 
@@ -35,13 +52,20 @@ services:
       DB_PORT: 5432
       DB_NAME: autoparts
       DB_USER: postgres
-      DB_PASSWORD: autoparts123
-      JWT_SECRET: ${JWT_SECRET:-autoparts-jwt-secret-change-in-production}
+      DB_PASSWORD: ${DB_PASSWORD:-autoparts2024}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_SECRET: ${JWT_SECRET:-autoparts-secret-key-change-in-production}
+      FRONTEND_URL: http://localhost:3002
+      SITE_URL: https://your-domain.com
+    ports:
+      - "3001:3000"
     depends_on:
       db:
         condition: service_healthy
-    ports:
-      - "3001:3000"
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
     networks:
       - autoparts-network
 
@@ -52,31 +76,37 @@ services:
       dockerfile: Dockerfile
     container_name: autoparts-web
     environment:
-      NEXT_PUBLIC_API_URL: http://localhost:3001/api/v1
+      NEXT_PUBLIC_API_URL: http://backend:3000/api/v1
+      NEXT_PUBLIC_SITE_URL: https://your-domain.com
     ports:
       - "3002:3000"
     depends_on:
       - backend
+    restart: unless-stopped
     networks:
       - autoparts-network
 
-  # Nginx Reverse Proxy
+  # Nginx (Reverse Proxy)
   nginx:
     image: nginx:alpine
     container_name: autoparts-nginx
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
     ports:
       - "80:80"
       - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ssl_certs:/etc/nginx/ssl:ro
     depends_on:
       - frontend
       - backend
+    restart: unless-stopped
     networks:
       - autoparts-network
 
 volumes:
   postgres_data:
+  redis_data:
+  ssl_certs:
 
 networks:
   autoparts-network:
