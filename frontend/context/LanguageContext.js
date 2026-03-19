@@ -192,7 +192,7 @@ const translations = {
 const LanguageContext = createContext()
 
 export function LanguageProvider({ children }) {
-  const [language, setLanguage] = useState('en')
+  const [language, setLanguage] = useState('zh')
   const [dir, setDir] = useState('ltr')
 
   useEffect(() => {

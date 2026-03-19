@@ -13,7 +13,7 @@ export default function Footer() {
         <div className="grid md:grid-cols-4 gap-8">
           {/* Brand */}
           <div>
-            <h3 className="text-xl font-bold mb-4">AutoParts</h3>
+            <h3 className="text-xl font-bold mb-4">汽配商城</h3>
             <p className="text-gray-400 mb-4">
               {dir === 'rtl' 
                 ? 'مصدرك الموثوق لقطع غيار السيارات عالية الجودة. الشحن العالمي متاح.'
@@ -64,7 +64,7 @@ export default function Footer() {
 
         {/* Bottom */}
         <div className="border-t border-gray-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center text-gray-400 text-sm">
-          <p>© 2024 AutoParts Store. {t('allRightsReserved')}</p>
+          <p>© 2026 汽配商城. {t('allRightsReserved')}</p>
           <div className="flex gap-6 mt-4 md:mt-0">
             <Link href="/privacy" className="hover:text-white">{t('privacy')}</Link>
             <Link href="/terms" className="hover:text-white">{t('terms')}</Link>
